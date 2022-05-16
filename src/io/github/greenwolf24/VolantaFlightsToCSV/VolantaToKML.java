@@ -42,7 +42,7 @@ public class VolantaToKML
 				// we will also replace the extension with nothing
 				String fileName = file.getName().replace(".json", "");
 				
-				String kml = colorLinePath(flight.Positions,flight.Callsign + "/" + flight.FlightNumber,false);
+				String kml = colorLinePath(flight.Positions,flight.Callsign + "/" + flight.FlightNumber,true);
 				
 				File kmlFile = new File(filePath + fileName + ".kml");
 				FileWriter fw = new FileWriter(kmlFile);
@@ -97,8 +97,6 @@ public class VolantaToKML
 	
 	private static String onePlacemark(Position position1, Position position2,String name,boolean flightRadarWebFormat)
 	{
-		// TODO: impliment this
-		
 		String base = "<Placemark>\n" +
 				"        <Style>\n" +
 				"          <LineStyle>\n" +
