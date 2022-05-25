@@ -1,7 +1,8 @@
 package io.github.greenwolf24.VolantaFlightsToCSV;
 
 import com.google.gson.Gson;
-import io.github.greenwolf24.SwissArmyKnife.Color.FlightRadar24ColorRange;
+import io.github.greenwolf24.PolyTool.Color.Ranges.FlightRadar24AltitudeRange;
+import io.github.greenwolf24.PolyTool.Color.Ranges.VolantaRange;
 import io.github.greenwolf24.VolantaFlightsToCSV.VolantaData.Flight;
 import io.github.greenwolf24.VolantaFlightsToCSV.VolantaData.Position;
 
@@ -10,7 +11,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Locale;
+
+// TODO: The next challenge is getting the Volanta path to extend to the ground.
+// This task is actually is something that will be done in the KMLManage library.
+
 
 public class VolantaToKML
 {
@@ -42,7 +46,7 @@ public class VolantaToKML
 				// we will also replace the extension with nothing
 				String fileName = file.getName().replace(".json", "");
 				
-				String kml = colorLinePath(flight.Positions,flight.Callsign + "/" + flight.FlightNumber,true);
+				String kml = colorLinePath(flight.Positions,flight.Callsign + "/" + flight.FlightNumber,false,true);
 				
 				File kmlFile = new File(filePath + fileName + ".kml");
 				FileWriter fw = new FileWriter(kmlFile);
@@ -95,7 +99,7 @@ public class VolantaToKML
 		return false;
 	}
 	
-	private static String onePlacemark(Position position1, Position position2,String name,boolean flightRadarWebFormat)
+	private static String onePlacemark(Position position1, Position position2,String name,boolean flightRadarWebFormat,boolean volantaFormat)
 	{
 		String base = "<Placemark>\n" +
 				"        <Style>\n" +
@@ -127,11 +131,15 @@ public class VolantaToKML
 			base = base.replace("MODE","absolute");
 			if(flightRadarWebFormat)
 			{
-				base = base.replace("COLOR", new FlightRadar24ColorRange().getColor((int) position1.Altitude).kmlFormat());
+				base = base.replace("COLOR", new FlightRadar24AltitudeRange().getColor((int) position1.Altitude).kmlFormat());
+			}
+			else if (volantaFormat)
+			{
+				base = base.replace("COLOR", VolantaRange.getColor((int) position1.Altitude).kmlFormat());
 			}
 			else
 			{
-				base = base.replace("COLOR", new FlightRadar24ColorRange().getColor((int) position1.Altitude).rawString(true));
+				base = base.replace("COLOR", new FlightRadar24AltitudeRange().getColor((int) position1.Altitude).rawString(true));
 			}
 			// the Positions are in feet, convert to meters
 			base = base.replace("COORDS",position1.Longitude + "," + position1.Latitude + "," + (position1.Altitude * 0.3048) + " " + position2.Longitude + "," + position2.Latitude + "," + (position2.Altitude * 0.3048));
@@ -141,7 +149,7 @@ public class VolantaToKML
 		return base;
 	}
 	
-	private static String colorLinePath(ArrayList<Position> positions, String name, boolean flightRadarWebFormat)
+	private static String colorLinePath(ArrayList<Position> positions, String name, boolean flightRadarWebFormat, boolean volantaFormat)
 	{
 		String top0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 				"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
@@ -166,7 +174,7 @@ public class VolantaToKML
 			Position position1 = positions.get(i);
 			Position position2 = positions.get(i + 1);
 			
-			sb.append(onePlacemark(position1, position2, "P-" + i,flightRadarWebFormat));
+			sb.append(onePlacemark(position1, position2, "P-" + i,flightRadarWebFormat,volantaFormat));
 		}
 		
 		sb.append(bottom);
